@@ -1,8 +1,8 @@
 /*
-Small program designed to emulate the workflow for the order of activation
+This is a relativly small program designed to emulate the workflow for the order of activation
 of various redstone components for a bamboo farm in Minecraft that I'm working on.
 
-Objective of the machine is to convert bone meal into bamboo to be used as fuel for furnaces
+The objective of the machine is to convert bone meal into bamboo to be used as fuel for furnaces
 and various building/crafting blocks.
 
 Actively Switched Components:
@@ -39,50 +39,60 @@ Logic Flow Map:
 |___> Bone meal distribution hoppers the storage input evenly into 4 streams for the 4 dispensers
 
 */
+
 // Code Start
 import jdk.jfr.Event;
-
+import java.util.Objects;
 import java.util.Scanner;
 
 public class bambooFarm {
-    static byte cyclePos = 0;               // Keeps track of clock cycle position out of 8, defined outside of main
-                                            // to allow access for other methods.
+    // Defined outside of main to allow access for other methods.
+    static byte cyclePos = 0;                      // Keeps track of clock cycle position out of 8
+    static int boneMeal = 0;                       // Keeps track of if the Bamboozler has Bone Meal left
+    static Scanner input = new Scanner(System.in); // Initializes new scanner to receive user input
+
 
     public static void main(String[] args) {
-        Scanner input = new Scanner(System.in);                     // Initializes new scanner to receive user input
-
-        int boneMeal = 0;     // Keeps track of if the Bamboozler has Bone Meal left
 
         boolean powerStatus = false,  // Enable EHC
                 blocks = false,       // Enable crafting of "Block of Bamboo"
                 planks = false,       // Enable crafting of "Bamboo Planks"
-                emptyShutdown = true; // Enable the machine to shutdown if empty
+                refill = false,       // Enable refills when Bone Meal runs out
+                emptyShutdown = true; // Enable the machine to shut down if empty
 
-        powerStatus = confirmStart(input, powerStatus, boneMeal); // Goes through the startup procedure and
-                                                                  // sets powerStatus(true/false)
-        boneMeal = startUpProcedure(boneMeal, input);
 
-        checkBoneMeal(boneMeal, emptyShutdown, input);
+        powerStatus = confirmStart(powerStatus, emptyShutdown, refill); // Goes through the startup procedure and
+        // sets powerStatus(true/false)
+        startUpProcedure(emptyShutdown, refill);
 
+        checkBoneMeal(emptyShutdown, refill);
+
+        //       normalOperation();
     }
+/*
+    public static void normalOperation() {
+        if () {
 
+        }
+    }
+*/
     /*
      This method prompts the user if they would like to turn the machine on and checks if the answer is yes. Looping
      the question until an acceptable input is entered. Using a switch statement here simplifies what would be a mess
      of if else statements with a difficult to follow flow. It also simplifies the code's ability to catch the input
      that you want while making it easy to go back through the cases if you want to either double-check an input or add
-     a way to readjust your answer and go back through.
+     a way to readjust your answer and go back through the cases.
     */
 
-    public static boolean confirmStart(Scanner input, boolean power, int boneMeal) {
+    public static boolean confirmStart(boolean power, boolean shutdown, boolean refill) {
         System.out.print("Would you like to turn on the machine? (yes/no): ");
         String answer = input.nextLine();
 
         while (true) {
             switch (answer) {
                 case "yes":
-                    startUpProcedure(boneMeal, input);
-                    System.out.println("Starting the Bamboozler with " + boneMeal + " bone meal!");
+                    startUpProcedure(shutdown, refill);
+                    System.out.println("Starting the Bamboozler with " + bambooFarm.boneMeal + " bone meal!");
                     return power = true;
                 case "no":
                     System.out.println("Goodbye.");
@@ -95,43 +105,58 @@ public class bambooFarm {
         }
     }
 
-    public static int startUpProcedure(int bonesNum, Scanner input) {
-        if (bonesNum == 0) {
-            System.out.println("The system currently has " + bonesNum + " Bone Meal.");
-            System.out.println("1728 Bone meal will be added, but if you would like to add a specified amount, " +
-                    "to that please enter it here: ");
-            int amount = input.nextInt();
-            System.out.println("Adding " + (amount + 1728) + " Bone Meal to the system.");
-            System.out.println("Would you like the Bamboozler to shutdown when empty? (yes/no): ");
+    public static boolean startUpProcedure(boolean shutdown, boolean refill) {
+        System.out.println("The system currently has " + bambooFarm.boneMeal + " Bone Meal.");
+        System.out.print("1728 Bone meal will be added, but if you would like to add a specified amount, " +
+                "to that please enter it here: ");
+        int amount = input.nextInt();
 
+        bambooFarm.boneMeal += amount + 1728;
 
-            bonesNum += amount + 1728;
-            if (bonesNum <= 0) {
-                System.out.println("Invalid input.");
+        System.out.println("Adding " + (bambooFarm.boneMeal) + " Bone Meal to the system.");
+        System.out.print("Would you like the Bamboozler to shutdown when empty? (yes/no): ");
+
+        if (yesNo(input.nextLine())) {
+            System.out.print("Would you like to refill the bone meal when it runs out? (yes/no): ");
+            if (yesNo(input.nextLine())) {
+
             }
-            return bonesNum;
         }
+        if (bambooFarm.boneMeal <= 0) {
+            System.out.println("Invalid input.");
+        }
+        return shutdown;
     }
 
-    public static void checkBoneMeal(int boneMeal, boolean shutdown, Scanner input) {
+    // This simple method checks if the Bamboozler has bone meal and if it doesnt to go through the shutdown procedure.
+    public static boolean checkBoneMeal(boolean shutdown, boolean refillStatus) {
         if (boneMeal == 0 && shutdown) {
             System.out.println("The system currently has run out of Bone Meal. ");
             shutdownProcedure();
-        } else if (boneMeal == 0 && !shutdown) {
-            System.out.println("The system currently has run out of Bone Meal. Please enter the amount " +
-                    "you would like to add. Type '0' to end operations: ");
-            byte newAmount = input.nextByte();
-            if (newAmount == 0) {
-                shutdownProcedure();
+        } else {
+            return refillStatus;
             }
+        return shutdown;
+    }
+
+    public static void boneMealRefill() {
+
+
+        if (Objects.equals(input.nextLine(), "yes")) {
+            System.out.print("How much would you like to refill? ");
+            int amount = bambooFarm.boneMeal + input.nextInt();
+
+            System.out.println(amount + " Bone Meal has been added to the system for a total of "
+                    + bambooFarm.boneMeal + "Bone Meal.");
+        } else  if (Objects.equals(input.nextLine(), "no")) {
+
         }
     }
 
-
     public static void shutdownProcedure() {
-
         System.out.println("The Bamboozler will now shut down. ");
         System.out.println("Shutting down the Bamboozler ...");
+        System.exit(0);
     }
 
     // Cycle position/Clock for EHC
@@ -144,4 +169,24 @@ public class bambooFarm {
         }
         return position;
     }
+
+    /* This method is another version of the switch statement but also transforms an input of "yes" and "no" into
+    true and false. The difference between this style of ifs compared to the switch statement is that for simple
+    choices with simple answers, it makes more sense to go with a simpler solution.*/
+
+    // Looks for a string input of "yes" or "no" and returns the equivilent expected boolean value.
+    public static boolean yesNo(String yesNo) {
+        while (true) {
+            if (yesNo.equals("yes")) {
+                return true;
+            } else if (yesNo.equals("no")) {
+                return false;
+            } else {
+                System.out.print("Invalid input. Please try again. (yes/no): ");
+            }
+        }
+    }
 }
+
+
+
