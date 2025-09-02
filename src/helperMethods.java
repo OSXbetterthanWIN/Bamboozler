@@ -1,17 +1,17 @@
 import java.util.Objects;
-import java.util.Scanner;
 
 public class helperMethods {
     // Global Variables
     final static boolean DEFAULT_ANSWER_BOOL = true;
 
-    // Looks for a string input of "yes" or "no" and returns the equivilent expected boolean value.
-    public static boolean yesNo(boolean answerBool) {
+    // When called, takes a string input of yes|no from the user, and returns the appropriate boolean equivalent.
+    // Method call - Input: N/a | Output: (return boolean)
+    public static boolean yesNo() {
         while (true) {
-            switch (bambooFarm.input.next()) {
-                case "yes":
+            switch (bambooFarm.input.next().toLowerCase().charAt(0)) {
+                case 'y':
                     return true;
-                case "no":
+                case 'n':
                     return false;
                 default:
                     System.out.print("Invalid input. Please try again. (yes/no): ");
@@ -62,7 +62,7 @@ public class helperMethods {
 
             System.out.println("The system currently has " + bambooFarm.boneMeal + " Bone Meal.");
             System.out.print("Would you like to add to the reserves? (yes/no): ");
-            if (yesNo(helperMethods.DEFAULT_ANSWER_BOOL)) {
+            if (yesNo()) {
                 System.out.print ("How much would you like to add? ");
                 int amount = bambooFarm.input.nextInt();
                 bambooFarm.boneMeal += amount;
@@ -86,9 +86,9 @@ public class helperMethods {
     */
     public static void startUpProcedure() {
         System.out.print("Would you like the Bamboozler to shutdown when empty? (yes/no): ");
-        if (yesNo(helperMethods.DEFAULT_ANSWER_BOOL)) {
+        if (yesNo()) {
             System.out.print("Would you like to refill the bone meal when it runs out? (yes/no): ");
-            if (yesNo(helperMethods.DEFAULT_ANSWER_BOOL)) {
+            if (!yesNo()) {
                 bambooFarm.refill = true;
             }
         }
@@ -111,7 +111,7 @@ public class helperMethods {
     public static boolean confirmStart(boolean power) {
         System.out.print("Would you like to turn on the machine? (yes/no): ");
         while (true) {
-            if (yesNo(helperMethods.DEFAULT_ANSWER_BOOL)) {
+            if (yesNo()) {
                 startUpProcedure();
                 System.out.println("Starting the Bamboozler with " + bambooFarm.boneMeal + " bone meal!");
                 return power = true;
